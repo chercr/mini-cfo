@@ -26,3 +26,9 @@ pnpm-debug.log*
 data/
 tsconfig.tsbuildinfo
 next-env.d.ts
+
+# Unused v0 assets (kept locally, not in repo)
+public/professional-headshot.png
+public/placeholder-*
+.npmrc
+components/dashboard/data-sources.tsx
