@@ -32,3 +32,4 @@ public/professional-headshot.png
 public/placeholder-*
 .npmrc
 components/dashboard/data-sources.tsx
+public/placeholder.*

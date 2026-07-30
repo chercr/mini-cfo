@@ -104,6 +104,8 @@ interface StoreContextType {
   addTransaction: (tx: Omit<TransactionRow, "id">) => void
   dateRange: DateRange
   setDateRange: (r: DateRange) => void
+  theme: string
+  setTheme: (t: string) => void
   exportData: () => string
   importData: (json: string) => boolean
 }
@@ -117,7 +119,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [assets, setAssets] = useState<AssetRow[]>(() => loadFromStorage(ASSETS_KEY, initialAssets))
   const [transactions, setTransactions] = useState<TransactionRow[]>(() => loadFromStorage(TX_KEY, initialTransactions))
   const [dateRange, setDateRange] = useState<DateRange>(getDefaultRange)
+  const [theme, setThemeState] = useState(() => {
+    if (typeof window === "undefined") return "emerald"
+    return localStorage.getItem("am_theme") || "emerald"
+  })
   const [mounted, setMounted] = useState(false)
+
+  // 主题同步到 <html> 和 localStorage
+  function setTheme(t: string) {
+    setThemeState(t)
+    if (typeof window !== "undefined") {
+      document.documentElement.setAttribute("data-theme", t)
+      localStorage.setItem("am_theme", t)
+    }
+  }
+
+  // 挂载时应用主题
+  useEffect(() => {
+    if (mounted) {
+      document.documentElement.setAttribute("data-theme", theme)
+    }
+  }, [theme, mounted])
 
   // 标记客户端挂载完成（避免 hydration 不一致）
   useEffect(() => { setMounted(true) }, [])
@@ -174,6 +196,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       assets, addAsset, updateAsset, deleteAsset,
       transactions, addTransaction,
       dateRange, setDateRange,
+      theme, setTheme,
       exportData, importData,
     }}>
       {children}
