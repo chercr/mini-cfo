@@ -259,6 +259,112 @@
   --sidebar-ring: #57534e;
 }
 
+/* ===== 壁纸模式：增强对比度 ===== */
+.has-wallpaper body {
+  background: transparent !important;
+}
+
+/* 卡片：近乎不透明 + 深色边框 */
+.has-wallpaper .bg-card,
+.has-wallpaper [class*="rounded-xl border border-border bg-card"] {
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-color: rgba(71, 85, 105, 0.45) !important;
+}
+
+.has-wallpaper aside {
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-color: rgba(71, 85, 105, 0.45) !important;
+}
+
+/* 文字增强 */
+.has-wallpaper .text-muted-foreground {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+.has-wallpaper .text-foreground {
+  font-weight: 600 !important;
+}
+
+.has-wallpaper .text-foreground\/80 {
+  color: #1e293b !important;
+  font-weight: 500 !important;
+}
+
+.has-wallpaper .border-border {
+  border-color: rgba(71, 85, 105, 0.45) !important;
+}
+
+/* 暗夜主题适配 */
+.has-wallpaper[data-theme="midnight"] .bg-card,
+.has-wallpaper[data-theme="midnight"] [class*="rounded-xl border border-border bg-card"] {
+  background: rgba(15, 23, 42, 0.97) !important;
+  border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+.has-wallpaper[data-theme="midnight"] aside {
+  background: rgba(15, 23, 42, 0.98) !important;
+  border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+.has-wallpaper[data-theme="midnight"] .text-muted-foreground {
+  color: #e2e8f0 !important;
+  font-weight: 500 !important;
+}
+
+.has-wallpaper[data-theme="midnight"] .text-foreground\/80 {
+  color: #f1f5f9 !important;
+  font-weight: 500 !important;
+}
+
+.has-wallpaper[data-theme="midnight"] .border-border {
+  border-color: rgba(148, 163, 184, 0.35) !important;
+}
+
+/* 浅色壁纸：极致对比度 */
+.has-wallpaper-bright .bg-card,
+.has-wallpaper-bright [class*="rounded-xl border border-border bg-card"] {
+  background: rgba(255, 255, 255, 0.99) !important;
+  border-color: rgba(51, 65, 85, 0.5) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+.has-wallpaper-bright .text-muted-foreground {
+  color: #1e293b !important;
+  font-weight: 550 !important;
+}
+
+.has-wallpaper-bright .text-foreground {
+  font-weight: 700 !important;
+}
+
+.has-wallpaper-bright .border-border {
+  border-color: rgba(51, 65, 85, 0.5) !important;
+}
+
+.has-wallpaper-bright aside {
+  border-color: rgba(51, 65, 85, 0.5) !important;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.08) !important;
+}
+
+/* 弹窗/模态框保持原样 */
+.has-wallpaper .fixed.inset-0.z-50 .bg-card,
+.has-wallpaper .fixed.inset-0.z-50 .rounded-xl {
+  background: var(--card) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-color: var(--border) !important;
+}
+
+.has-wallpaper .fixed.inset-0.z-50 .text-muted-foreground,
+.has-wallpaper .fixed.inset-0.z-50 .text-foreground {
+  font-weight: revert !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

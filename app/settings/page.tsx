@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { Pencil, Trash2, Plus, Layers, Palette, Database, Info, Download, Upload, Check, AlertCircle } from "lucide-react"
+import { Pencil, Trash2, Plus, Layers, Palette, Database, Info, Download, Upload, Check, AlertCircle, Image, X, SlidersHorizontal } from "lucide-react"
 import { Sidebar } from "@/components/dashboard/sidebar"
-import { useStore } from "@/lib/store"
+import { useStore, type Wallpaper } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
 const defaultTypes = ["房产租赁", "交通服务", "内容创作", "投资理财", "电商", "自由职业", "其他"]
@@ -41,6 +41,17 @@ const themes = [
   },
 ]
 
+const gradientPresets = [
+  { name: "极光", css: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
+  { name: "日落", css: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
+  { name: "海洋", css: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
+  { name: "森林", css: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" },
+  { name: "暗黑", css: "linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)" },
+  { name: "暖阳", css: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)" },
+  { name: "星空", css: "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)" },
+  { name: "樱花", css: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)" },
+]
+
 const aboutInfo = {
   name: "创收资产管家",
   version: "v0.1.0",
@@ -50,8 +61,46 @@ const aboutInfo = {
 }
 
 export default function SettingsPage() {
-  const { assets, transactions, theme, setTheme, exportData, importData } = useStore()
+  const { assets, transactions, theme, setTheme, wallpaper, setWallpaper, clearWallpaper, exportData, importData } = useStore()
   const fileRef = useRef<HTMLInputElement>(null)
+  const imageRef = useRef<HTMLInputElement>(null)
+
+  // 壁纸滑块
+  const [wpBlur, setWpBlur] = useState(wallpaper.blur)
+  const [wpOpacity, setWpOpacity] = useState(wallpaper.opacity)
+
+  function applyGradient(css: string) {
+    setWallpaper({ data: css, type: "gradient", blur: wpBlur, opacity: wpOpacity })
+  }
+
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new window.Image()
+      img.onload = () => {
+        // 缩放大图避免 localStorage 溢出
+        const canvas = document.createElement("canvas")
+        const maxW = 1920; const maxH = 1080
+        let w = img.width; let h = img.height
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW }
+        if (h > maxH) { w = Math.round(w * maxH / h); h = maxH }
+        canvas.width = w; canvas.height = h
+        canvas.getContext("2d")!.drawImage(img, 0, 0, w, h)
+        const base64 = canvas.toDataURL("image/jpeg", 0.85)
+        setWallpaper({ data: base64, type: "image", blur: wpBlur, opacity: wpOpacity })
+      }
+      img.src = reader.result as string
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ""
+  }
+
+  function updateSliders() {
+    if (!wallpaper.data) return
+    setWallpaper({ ...wallpaper, blur: wpBlur, opacity: wpOpacity })
+  }
 
   const [types, setTypes] = useState(defaultTypes)
   const [newType, setNewType] = useState("")
@@ -143,6 +192,76 @@ export default function SettingsPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Wallpaper */}
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100">
+                <Image className="h-4 w-4 text-sky-500" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-foreground">壁纸背景</h2>
+                <p className="text-sm text-muted-foreground">上传图片或选择渐变色作为应用背景</p>
+              </div>
+              {wallpaper.data && (
+                <button onClick={clearWallpaper} className="ml-auto flex items-center gap-1 rounded-lg border border-rose-200 px-3 py-1.5 text-xs text-rose-500 transition-colors hover:bg-rose-50">
+                  <X className="h-3.5 w-3.5" />移除壁纸
+                </button>
+              )}
+            </div>
+
+            {/* 预设渐变 */}
+            <p className="mt-4 mb-2 text-xs font-medium text-muted-foreground">预设渐变色</p>
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+              {gradientPresets.map((g) => (
+                <button
+                  key={g.name}
+                  onClick={() => applyGradient(g.css)}
+                  className="flex flex-col items-center gap-1.5 rounded-lg border border-border p-2 transition-all hover:scale-105 active:scale-95 hover:shadow-md"
+                >
+                  <div className="h-10 w-full rounded-md" style={{ background: g.css }} />
+                  <span className="text-xs text-muted-foreground">{g.name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* 上传自定义图片 */}
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                onClick={() => imageRef.current?.click()}
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary active:scale-95"
+              >
+                <Upload className="h-4 w-4" />上传图片
+              </button>
+              <input ref={imageRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+              <span className="text-xs text-muted-foreground">支持 JPG/PNG，自动压缩适配</span>
+            </div>
+
+            {/* 调节滑块 */}
+            {wallpaper.data && (
+              <div className="mt-4 flex items-center gap-6 rounded-lg border border-border bg-secondary/50 p-3">
+                <SlidersHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <div className="flex flex-1 items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">模糊</span>
+                    <input type="range" min="0" max="8" step="1" value={wpBlur}
+                      onChange={(e) => { setWpBlur(Number(e.target.value)) }}
+                      onMouseUp={updateSliders} onTouchEnd={updateSliders}
+                      className="h-1.5 w-20 cursor-pointer appearance-none rounded-full bg-border accent-primary" />
+                    <span className="text-xs text-muted-foreground w-8">{wpBlur}px</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">深度</span>
+                    <input type="range" min="5" max="40" step="5" value={Math.round(wpOpacity * 100)}
+                      onChange={(e) => { setWpOpacity(Number(e.target.value) / 100) }}
+                      onMouseUp={updateSliders} onTouchEnd={updateSliders}
+                      className="h-1.5 w-20 cursor-pointer appearance-none rounded-full bg-border accent-primary" />
+                    <span className="text-xs text-muted-foreground w-8">{Math.round(wpOpacity * 100)}%</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Asset Types */}

@@ -26,6 +26,16 @@ function saveToStorage(key: string, data: unknown) {
   try { localStorage.setItem(key, JSON.stringify(data)) } catch { /* ignore */ }
 }
 
+// ---- 壁纸 ----
+export interface Wallpaper {
+  data: string         // base64 图片或渐变CSS值
+  type: "image" | "gradient"
+  blur: number         // 0-20px
+  opacity: number      // 0-1
+}
+
+const DEFAULT_WALLPAPER: Wallpaper = { data: "", type: "gradient", blur: 0, opacity: 0.15 }
+
 // ---- 日期范围 ----
 export interface DateRange {
   key: string  // "month" | "quarter" | "halfYear" | "year" | "custom"
@@ -106,6 +116,9 @@ interface StoreContextType {
   setDateRange: (r: DateRange) => void
   theme: string
   setTheme: (t: string) => void
+  wallpaper: Wallpaper
+  setWallpaper: (w: Wallpaper) => void
+  clearWallpaper: () => void
   exportData: () => string
   importData: (json: string) => boolean
 }
@@ -119,6 +132,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [assets, setAssets] = useState<AssetRow[]>(() => loadFromStorage(ASSETS_KEY, initialAssets))
   const [transactions, setTransactions] = useState<TransactionRow[]>(() => loadFromStorage(TX_KEY, initialTransactions))
   const [dateRange, setDateRange] = useState<DateRange>(getDefaultRange)
+  const [wallpaper, setWallpaperState] = useState<Wallpaper>(() => {
+    if (typeof window === "undefined") return DEFAULT_WALLPAPER
+    try {
+      const raw = localStorage.getItem("am_wallpaper")
+      if (raw) return JSON.parse(raw) as Wallpaper
+    } catch { /* ignore */ }
+    return DEFAULT_WALLPAPER
+  })
   const [theme, setThemeState] = useState(() => {
     if (typeof window === "undefined") return "emerald"
     return localStorage.getItem("am_theme") || "emerald"
@@ -170,6 +191,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setTransactions((prev) => [{ ...tx, id: `t${nextTxId++}` }, ...prev])
   }
 
+  function setWallpaper(w: Wallpaper) {
+    setWallpaperState(w)
+    if (typeof window !== "undefined") {
+      try { localStorage.setItem("am_wallpaper", JSON.stringify(w)) } catch { /* quota exceeded */ }
+    }
+  }
+
+  function clearWallpaper() {
+    setWallpaperState(DEFAULT_WALLPAPER)
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("am_wallpaper")
+    }
+  }
+
   function exportData(): string {
     return JSON.stringify({ assets, transactions, exportedAt: new Date().toISOString() }, null, 2)
   }
@@ -197,6 +232,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       transactions, addTransaction,
       dateRange, setDateRange,
       theme, setTheme,
+      wallpaper, setWallpaper, clearWallpaper,
       exportData, importData,
     }}>
       {children}

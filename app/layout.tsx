@@ -40,14 +40,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="zh-CN" className="light bg-background" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("am_theme")||"emerald";document.documentElement.setAttribute("data-theme",t)}catch(e){}`,
-          }}
-        />
-      </head>
+    <html lang="zh-CN" className="light bg-background">
       <body className="antialiased">
         <Providers>
           {children}
