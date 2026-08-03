@@ -1,46 +1,55 @@
 @echo off
-chcp 65001 >nul
-title 创收资产管家
+title Mini CFO - Asset Manager
+cd /d "%~dp0"
 
 echo.
-echo   ╔══════════════════════════════╗
-echo   ║   创收资产管家 · 迷你CFO   ║
-echo   ╚══════════════════════════════╝
+echo   ===================================
+echo       Mini CFO - Asset Manager
+echo   ===================================
 echo.
 
-:: 检查 Node.js
 where node >nul 2>&1
 if %errorlevel% neq 0 (
-    echo   [X] 未检测到 Node.js
-    echo   请先安装 Node.js (LTS v18+)
-    echo   下载地址: https://nodejs.org/zh-cn
+    echo   [X] Node.js not found
+    echo   Install Node.js LTS first:
+    echo   https://nodejs.org
     echo.
     pause
     exit /b 1
 )
 
-:: 首次运行：安装 pnpm + 依赖
 if not exist "node_modules\" (
-    echo   [1/2] 首次运行，安装依赖中...
-    call npm install -g pnpm >nul 2>&1
+    echo   [1/2] First run: installing dependencies...
+    npm install -g pnpm >nul 2>&1
     call pnpm install
     echo.
 )
 
-:: 构建
 if not exist ".next\" (
-    echo   [2/2] 首次运行，构建应用中...
+    echo   [2/2] First run: building app...
     call pnpm build
     echo.
 )
 
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":4002.*LISTENING" 2^>nul') do (
+    taskkill //PID %%a //F >nul 2>&1
+)
+
 echo   ========================================
-echo   地址: http://localhost:4002
-echo   数据保存在浏览器中，不会上传到任何服务器
-echo   按 Ctrl+C 或关闭此窗口停止运行
+echo   URL: http://localhost:4002
+echo   Data stored in browser, never uploaded
+echo   Press Ctrl+C or close window to stop
 echo   ========================================
 echo.
 
 start "" http://localhost:4002
-call pnpm start
+node node_modules\next\dist\bin\next start -p 4002
+
+if %errorlevel% neq 0 (
+    echo.
+    echo   [X] Start failed (code: %errorlevel%)
+    echo   Quick fix: delete node_modules and .next
+    echo   Then run this script again
+    echo.
+)
 pause
